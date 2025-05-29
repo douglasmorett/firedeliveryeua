@@ -1,0 +1,203 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<title>Complete Food Cost & Profit Calculator - Delivery</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 700px;
+    margin: 30px auto;
+    padding: 15px;
+    background: #f7f7f7;
+    border-radius: 8px;
+    position: relative;
+  }
+  h1.topo {
+    text-align: center;
+    font-size: 28px;
+    color: #ff4d00;
+    margin-bottom: 10px;
+  }
+  h2 { text-align: center; color: #ff4d00; }
+  label {
+    display: block;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  input, select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+  }
+  button {
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #ff4d00;
+    color: white;
+    font-size: 18px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .insumo-group {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 6px;
+    background: white;
+  }
+  .remove-btn {
+    margin-top: 10px;
+    background: #cc0000;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .resultado {
+    margin-top: 20px;
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    font-size: 18px;
+  }
+  .rodape {
+    text-align: center;
+    margin-top: 40px;
+    font-size: 16px;
+    color: #666;
+  }
+</style>
+</head>
+<body>
+
+<h1 class="topo">Fire delivery 🔥</h1>
+
+<h2>Complete Food Cost & Profit Calculator - Delivery</h2>
+
+<div id="insumos-container"></div>
+<button type="button" onclick="adicionarInsumo()">+ Add ingredient</button>
+
+<label for="custoEmbalagem">Packaging cost (US$):</label>
+<input type="number" id="custoEmbalagem" step="0.01" min="0" value="0" />
+
+<label for="taxaCartao">Credit card fee (%):</label>
+<input type="number" id="taxaCartao" step="0.01" min="0" value="0" />
+
+<label for="desconto">Discount applied (US$):</label>
+<input type="number" id="desconto" step="0.01" min="0" value="0" />
+
+<label for="precoVenda">Selling price (US$):</label>
+<input type="number" id="precoVenda" step="0.01" min="0" value="0" />
+
+<button onclick="calcular()">Calculate</button>
+
+<div class="resultado" id="resultado"></div>
+
+<div class="rodape">
+  Follow @douglasmorett on Instagram
+</div>
+
+<script>
+  let contadorInsumos = 0;
+
+  function adicionarInsumo() {
+    const container = document.getElementById('insumos-container');
+    const div = document.createElement('div');
+    div.classList.add('insumo-group');
+    div.id = 'insumo-' + contadorInsumos;
+    div.innerHTML = `
+      <label>Ingredient name:</label>
+      <input type="text" name="nome" placeholder="Ex: Pão" />
+      <label>Unit price (US$):</label>
+      <input type="number" name="preco" step="0.01" min="0" placeholder="Ex: 20.00" />
+      <label>Unit:</label>
+      <select name="unit">
+        <option value="lbs">Pounds (price per lb)</option>
+        <option value="unit">Unidade</option>
+      </select>
+      <label>Quantity used (oz or units):</label>
+      <input type="number" name="quantidade" step="0.01" min="0" placeholder="Ex: 2 (oz) or 1 (unit)" />
+      <button type="button" class="remove-btn" onclick="removerInsumo(${contadorInsumos})">Remove</button>
+    `;
+    container.appendChild(div);
+    contadorInsumos++;
+  }
+
+  function removerInsumo(id) {
+    const el = document.getElementById('insumo-' + id);
+    if (el) el.remove();
+  }
+
+  function calcular() {
+    const insumos = document.querySelectorAll('.insumo-group');
+    let custoInsumos = 0;
+    for (let insumo of insumos) {
+      const preco = parseFloat(insumo.querySelector('[name="preco"]').value) || 0;
+      const unit = insumo.querySelector('[name="unit"]').value;
+      const quantidade = parseFloat(insumo.querySelector('[name="quantidade"]').value) || 0;
+
+      if (unit === 'lbs') {
+        custoInsumos += (preco / 1000) * quantidade;
+      } else {
+        custoInsumos += preco * quantidade;
+      }
+    }
+
+    const custoEmbalagem = parseFloat(document.getElementById('custoEmbalagem').value) || 0;
+    const taxaCartao = parseFloat(document.getElementById('taxaCartao').value) || 0;
+    const desconto = parseFloat(document.getElementById('desconto').value) || 0;
+    const precoVenda = parseFloat(document.getElementById('precoVenda').value);
+
+    if (!precoVenda || precoVenda <= 0) {
+      alert('Digite um preço de venda válido.');
+      return;
+    }
+
+    const custoFixoRateado = 0;
+    const custoTotalPrato = custoInsumos + custoEmbalagem + custoFixoRateado;
+    const taxaTotal = taxaCartao;
+    const valorTaxas = precoVenda * (taxaTotal / 100);
+    const valorLiquido = precoVenda - valorTaxas - desconto;
+
+    const lucroBruto = valorLiquido - custoTotalPrato;
+    const margemBrutaPercent = (lucroBruto / precoVenda) * 100;
+    const cmvPercent = (custoTotalPrato / precoVenda) * 100;
+    const markup = ((precoVenda / custoTotalPrato) - 1) * 100;
+
+    const percentualImposto = 6;
+    const valorImposto = valorLiquido * (percentualImposto / 100);
+    const lucroLiquido = valorLiquido - custoTotalPrato - valorImposto;
+
+    const resultadoEl = document.getElementById('resultado');
+    resultadoEl.innerHTML = `
+      <p>🍽️ <strong>Total Plate Cost:</strong> $ ${custoTotalPrato.toFixed(2)}</p>
+      <p>💸 <strong>Net Revenue (after fees and discounts):</strong> $ ${valorLiquido.toFixed(2)}</p>
+      <p>💰 <strong>Gross Profit per Dish:</strong> $ ${lucroBruto.toFixed(2)}</p>
+      <p>📈 <strong>Gross Profit Margin:</strong> ${margemBrutaPercent.toFixed(2)}%</p>
+      <p>📊 <strong>Food Cost %:</strong> ${cmvPercent.toFixed(2)}% <br><span style="font-weight:normal;">(Ideal entre 30% a 35%)</span></p>
+      <p>📐 <strong>Price Multiplier (Markup):</strong> ${markup.toFixed(2)}%</p>
+      <p>🧾 <strong>Net Profit (with estimated tax of ${percentualImposto}%):</strong> $ ${lucroLiquido.toFixed(2)}</p>
+    `;
+
+    if (cmvPercent < 30) {
+      resultadoEl.innerHTML += `<p style="color:orange;">⚠️ Warning: Food Cost below 30% may indicate your price is too high for the market.</p>`;
+    }
+    if (cmvPercent > 35) {
+      resultadoEl.innerHTML += `<p style="color:red;">⚠️ Warning: Food Cost above 35% — your profit margin might be too low.</p>`;
+    }
+    if (lucroBruto < 0) {
+      resultadoEl.innerHTML += `<p style="color:red;">⚠️ Negative Gross Profit! Review your costs and selling price.</p>`;
+    }
+  }
+</script>
+
+</body>
+</html>
